@@ -49,7 +49,7 @@ var themes = new mongoose.Schema({
 let Themes = mongoose.model("themes", themes);
 
 app.get("/themes/:count", (req, res) => {
-  res.set("Content-Type", "application/json");
+  //res.set("Content-Type", "application/json");
   process.on('uncaughtException', function (err) {
     console.error(err);
     console.log("Node NOT Exiting...");
@@ -61,7 +61,11 @@ app.get("/themes/:count", (req, res) => {
   if(count > 0) {
     Themes.find({ count: { $gte: count } }, { "data": true, "count": true, "name": true, "_id": false }, (err, themes) => {
       if (themes != null && themes.length > 0) {
-        var responseData = themes.map(theme => ({ isSuccess: true, name: theme.name, count: theme.count, data: theme.data }));
+        var themeData = themes.map(theme => ({ name: theme.name, count: theme.count, data: theme.data }));
+        var responseData = {
+          isSuccess: true, 
+          data : themeData
+        };
         res.status(200).send(responseData);
       }
       else {
