@@ -49,19 +49,15 @@ var themes = new mongoose.Schema({
 let Themes = mongoose.model("themes", themes);
 
 app.get("/themes/:count", (req, res) => {
+  process.on('uncaughtException', function (err) {
+    console.error(err);
+    console.log("Node NOT Exiting...");
+  });
   res.set("Content-Type", "application/json");
   var count = req.params.count;
   Themes.find({ count: { $gte: count } }, { "data": true, "count": true, "name": true, "_id": false }, (err, themes) => {
     if (themes != null && themes.length > 0) {
-      var countArray = themes.map(theme => theme.count);
-      var nameArray = themes.map(theme => theme.name);
-      var base64Data = themes.map(theme => theme.data);//.replace(/^data:image\/png;base64,/, "");
-      var responseData = {
-        isSuccess: true,
-        count: countArray,
-        name: nameArray,
-        data: base64Data
-      }
+      var responseData = themes.map(theme => ({ isSuccess: true, name: theme.name, count: theme.count, data: theme.data }));
       res.status(200).send(responseData);
     }
     else {
