@@ -49,25 +49,29 @@ var themes = new mongoose.Schema({
 let Themes = mongoose.model("themes", themes);
 
 app.get("/themes/:count", (req, res) => {
+  res.set("Content-Type", "application/json");
   process.on('uncaughtException', function (err) {
     console.error(err);
     console.log("Node NOT Exiting...");
+    return prepareUnsuccessfulResponse(false, res);
   });
-  res.set("Content-Type", "application/json");
+  
   var count = req.params.count;
-  Themes.find({ count: { $gte: count } }, { "data": true, "count": true, "name": true, "_id": false }, (err, themes) => {
-    if (themes != null && themes.length > 0) {
-      var responseData = themes.map(theme => ({ isSuccess: true, name: theme.name, count: theme.count, data: theme.data }));
-      res.status(200).send(responseData);
-    }
-    else {
-      var responseData = {
-        isSuccess: false,
-        data: null
+
+  if(count > 0) {
+    Themes.find({ count: { $gte: count } }, { "data": true, "count": true, "name": true, "_id": false }, (err, themes) => {
+      if (themes != null && themes.length > 0) {
+        var responseData = themes.map(theme => ({ isSuccess: true, name: theme.name, count: theme.count, data: theme.data }));
+        res.status(200).send(responseData);
       }
-      res.status(200).send(responseData);
-    }
-  });
+      else {
+        return prepareUnsuccessfulResponse(true, res);
+      }
+    });
+  }
+  else {
+    return prepareUnsuccessfulResponse(true, res);
+  }
 });
 
 // catch 404 and forward to error handler
@@ -89,3 +93,12 @@ app.use(function (err, req, res, next) {
 module.exports = app;
 app.listen(port);
 console.log("Server is running @ port ".concat(port));
+
+function prepareUnsuccessfulResponse(isSuccess, res) {
+  var responseData = {
+    isSuccess: isSuccess,
+    data: null
+  };
+  res.status(200).send(responseData);
+  return responseData;
+}
